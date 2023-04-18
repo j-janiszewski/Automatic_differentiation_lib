@@ -74,12 +74,12 @@ function topological_sort(head::GraphNode)
     return order
 end
 
-reset!(node::Constant) = nothing
+reset!(::Constant) = nothing
 reset!(node::Variable) = node.gradient = nothing
 reset!(node::Operator) = node.gradient = nothing
 
-compute!(node::Constant) = nothing
-compute!(node::Variable) = nothing
+compute!(::Constant) = nothing
+compute!(::Variable) = nothing
 compute!(node::Operator) =
     node.output = forward(node, [input.output for input in node.inputs]...)
 
@@ -92,7 +92,7 @@ function forward!(order::Vector)
 end
 
 
-update!(node::Constant, gradient) = nothing
+update!(::Constant, gradient) = nothing
 update!(node::GraphNode, gradient) =
     if isnothing(node.gradient)
         node.gradient = gradient
@@ -109,8 +109,8 @@ function backward!(order::Vector; seed=1.0)
     return nothing
 end
 
-function backward!(node::Constant) end
-function backward!(node::Variable) end
+function backward!(::Constant) end
+function backward!(::Variable) end
 function backward!(node::Operator)
     inputs = node.inputs
     gradients = backward(node, [input.output for input in inputs]..., node.gradient)

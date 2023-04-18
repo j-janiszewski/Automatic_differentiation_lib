@@ -71,7 +71,7 @@ backward(::MatrixOperator{typeof(log)}, x, g) = tuple(((1 ./ x)' .* g)')
 
 select(x::GraphNode, index) = MatrixOperator(select, x, index)
 forward(::MatrixOperator{typeof(select)}, x, index) = return x[index]
-backward(node::MatrixOperator{typeof(select)}, x, index, g) =
+backward(::MatrixOperator{typeof(select)}, x, index, g) =
     let
         result = zeros(size(x))
         result[index] = g

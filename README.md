@@ -1,9 +1,9 @@
-# ad_lib
+# Automatic differentiation in reverse mode - Julia library
 
-This code base is using the [Julia Language](https://julialang.org/) and
-[DrWatson](https://juliadynamics.github.io/DrWatson.jl/stable/)
-to make a reproducible scientific project named
-> ad_lib
+Project made for the course:  "Algorithms in data engineering" of the Warsaw University of Technology
+
+An example of how the library can be used for creating Convolutional neural networks can be found in *scripts/cnn.jl*.
+
 
 It is authored by Jan Janiszewski.
 

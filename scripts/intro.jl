@@ -1,19 +1,9 @@
 using DrWatson
 @quickactivate "ad_lib"
 
-# Here you may include files from the source directory
-include(srcdir("dummy_src_file.jl"))
 
-println(
-"""
-Currently active project is: $(projectname())
+include(srcdir("operators.jl"))
 
-Path of active project: $(projectdir())
-
-Have fun with your new project!
-
-You can help us improve DrWatson by opening
-issues on GitHub, submitting feature requests,
-or even opening your own Pull Requests!
-"""
-)
+weights = Variable(reshape(1:4, 1, 4), name="conv_weights")
+img = Variable(reshape([0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0], 4, :), name="img")
+order = topological_sort(conv(img, weights, Constant(2), Constant(2)))

@@ -32,7 +32,8 @@ end
 
 NUM_OF_CLASSES = 10
 LEARNING_RATE = 0.001
-EPOCHS = 3
+EPOCHS = 5
+
 
 # variables that will be modified
 b = Variable(rand(Float64, NUM_OF_CLASSES), name="dense_layer_bias")
@@ -54,7 +55,9 @@ loss = crossentropy(fc_layer, actual_class)
 net = topological_sort(loss)
 
 # Training
+
 @printf("Training network... \n")
+
 losses = zeros(N)
 for j = 1:EPOCHS
     for i = 1:N
@@ -69,7 +72,6 @@ for j = 1:EPOCHS
     end
     @printf("Avarage loss during epoch #%d run : %f \n", j, mean(losses))
 end
-
 
 test_dataset = MNIST(:test)
 N = size(test_dataset.features)[3]

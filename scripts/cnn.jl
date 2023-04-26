@@ -19,7 +19,7 @@ function dense(w, x)
     return w * x
 end
 
-function crossentropy(y, actual_class)
+function sparse_categorical_crossentropy(y, actual_class)
     select(.-log.(y), actual_class)
 end
 
@@ -38,7 +38,7 @@ EPOCHS = 5
 # variables that will be modified
 b = Variable(rand(Float64, NUM_OF_CLASSES), name="dense_layer_bias")
 w = Variable(rand(Float64, (NUM_OF_CLASSES, 13 * 13)) ./ 10, name="dense_layer_weights")
-w_conv = Variable(reshape(1:9, 1, 9), name="convolution_weights")
+w_conv = Variable(rand(Float32, 1, 9), name="convolution_weights")
 
 train_dataset = MNIST(:train)
 N = size(train_dataset.features)[3]
@@ -47,11 +47,11 @@ N = size(train_dataset.features)[3]
 img = Variable(train_dataset[1].features, name="img")
 actual_class = Variable(train_dataset[1].targets + 1, name="actual_class")
 # Layers
-conv_layer = conv(img, w_conv, Constant(3), Constant(3))
+conv_layer = conv(img, w_conv, Constant(3), Constant(3), Constant(1))
 max_pool_layer = maxpool(conv_layer, Constant(2))
 flatten_layer = flatten(max_pool_layer)
 fc_layer = dense(w, b, flatten_layer, softmax)
-loss = crossentropy(fc_layer, actual_class)
+loss = sparse_categorical_crossentropy(fc_layer, actual_class)
 net = topological_sort(loss)
 
 # Training

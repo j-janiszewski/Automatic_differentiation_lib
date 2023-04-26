@@ -4,8 +4,6 @@ using LinearAlgebra
 
 include(srcdir("graph_nodes.jl"))
 
-
-
 *(A::GraphNode, x::GraphNode) = MatrixOperator(mul!, A, x)
 forward(::MatrixOperator{typeof(mul!)}, A, x) = return A * x
 backward(::MatrixOperator{typeof(mul!)}, A, x, g) = tuple(g * x', A' * g)
@@ -96,14 +94,14 @@ backward(::MatrixOperator{typeof(flatten)}, x, g) =
     end
 
 
-function im2col(x, m, n) # mxn: block_size
+function im2col(x::Matrix{Float32}, m::Int, n::Int, stride::Int)
     M, N = size(x)
-    mc = M - m + 1
-    nc = N - n + 1
-    B = Array{eltype(x)}(undef, m * n, mc * nc)
+    mc = (M - m) ÷ stride + 1
+    nc = (N - n) ÷ stride + 1
+    B = Array{Float32}(undef, m * n, mc * nc)
     for j = 1:nc
         for i = 1:mc
-            @views block = x[i:i+m-1, j:j+n-1]
+            @views block = x[((i-1)*stride+1):((i-1)*stride+1+m-1), (j-1)*stride+1:(j-1)*stride+1+n-1]
             for k = 1:m*n
                 B[k, (j-1)*mc+i] = block[k]
             end
@@ -113,27 +111,29 @@ function im2col(x, m, n) # mxn: block_size
 end
 
 
-conv(x::GraphNode, w::GraphNode, m::Constant, n::Constant) = ConvOperator(conv, x, w, m, n)
-forward(conv_layer::ConvOperator{typeof(conv)}, x, w, m, n) =
+conv(x::GraphNode, w::GraphNode, m::Constant, n::Constant, stride::Constant) = ConvOperator(conv, x, w, m, n, stride)
+forward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float32}, m::Int, n::Int, stride::Int) =
     let
         M, N = size(x)
-        b = im2col(x, m, n)
+        b = im2col(x, m, n, stride)
         conv_layer.im2col = b
-        reshape(w * b, M - m + 1, N - n + 1)
+        reshape(w * b, (M - m) ÷ stride + 1, (N - n) ÷ stride + 1)
     end
-backward(conv_layer::ConvOperator{typeof(conv)}, x, w, m, n, g) =
+backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float64}, m::Int, n::Int, stride::Int, g) =
     let
         M, N = size(x)
-        mc = M - m + 1
-        nc = N - n + 1
+        mc = (M - m) ÷ stride + 1
+        nc = (N - n) ÷ stride + 1
         reshaped_grad = reshape(g, 1, mc * nc)
         dw = zeros(1, n * m)
         dx = zeros(size(x))
         for i = 1:mc*nc
-            dw += (conv_layer.im2col[:, i] * reshaped_grad[1, i])'
-            row = reshaped_grad[1, i] * w
-            x_pos = (i - 1) ÷ mc + 1
-            y_pos = (i - 1) % nc + 1
+            @views grad_block = reshaped_grad[1, i]
+            @views im2col_block = conv_layer.im2col[:, i]
+            dw += (im2col_block * grad_block)'
+            row = grad_block * w
+            x_pos = ((i - 1) ÷ mc) * stride + 1
+            y_pos = ((i - 1) % nc) * stride + 1
             dx[x_pos:(x_pos+m-1), y_pos:(y_pos+n-1)] += reshape(row, m, n)
         end
         tuple(dx, dw)

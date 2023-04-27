@@ -112,14 +112,14 @@ end
 
 
 conv(x::GraphNode, w::GraphNode, m::Constant, n::Constant, stride::Constant) = ConvOperator(conv, x, w, m, n, stride)
-forward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float32}, m::Int, n::Int, stride::Int) =
+forward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float64}, m::Int, n::Int, stride::Int) =
     let
         M, N = size(x)
         b = im2col(x, m, n, stride)
         conv_layer.im2col = b
         reshape(w * b, (M - m) ÷ stride + 1, (N - n) ÷ stride + 1)
     end
-backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float64}, m::Int, n::Int, stride::Int, g) =
+backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float32}, w::Matrix{Float32}, m::Int, n::Int, stride::Int, g) =
     let
         M, N = size(x)
         mc = (M - m) ÷ stride + 1

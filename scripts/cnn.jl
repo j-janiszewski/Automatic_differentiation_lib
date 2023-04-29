@@ -23,6 +23,9 @@ function sparse_categorical_crossentropy(y, actual_class)
     select(.-log.(y), actual_class)
 end
 
+function relu(x)
+    max.(x, Constant(0))
+end
 
 -(x::Vector, y::Matrix) = vec(x .- y)
 
@@ -32,22 +35,22 @@ end
 
 NUM_OF_CLASSES = 10
 LEARNING_RATE = 0.001
-EPOCHS = 5
+EPOCHS = 3
 
 
 # variables that will be modified
 b = Variable(rand(Float64, NUM_OF_CLASSES), name="dense_layer_bias")
 w = Variable(rand(Float64, (NUM_OF_CLASSES, 13 * 13)) ./ 10, name="dense_layer_weights")
-w_conv = Variable(rand(Float32, 1, 9), name="convolution_weights")
+w_conv = Variable(rand(Float64, 1, 9), name="convolution_weights")
 
 train_dataset = MNIST(:train)
 N = size(train_dataset.features)[3]
 
 # Variables that will me modified on each run
-img = Variable(train_dataset[1].features, name="img")
+img = Variable(Float64.(train_dataset[1].features), name="img")
 actual_class = Variable(train_dataset[1].targets + 1, name="actual_class")
 # Layers
-conv_layer = conv(img, w_conv, Constant(3), Constant(3), Constant(1))
+conv_layer = relu(conv(img, w_conv, Constant(3), Constant(3), Constant(1)))
 max_pool_layer = maxpool(conv_layer, Constant(2))
 flatten_layer = flatten(max_pool_layer)
 fc_layer = dense(w, b, flatten_layer, softmax)
@@ -61,7 +64,7 @@ net = topological_sort(loss)
 losses = zeros(N)
 for j = 1:EPOCHS
     for i = 1:N
-        img.output = train_dataset[i].features
+        img.output = Float64.(train_dataset[i].features)
         actual_class.output = train_dataset[i].targets + 1
         loss_value = forward!(net)
         losses[i] = loss_value
@@ -80,7 +83,7 @@ net = topological_sort(fc_layer)
 @printf("Testing network...\n")
 let count = 0
     for i = 1:N
-        img.output = test_dataset[i].features
+        img.output = Float64.(test_dataset[i].features)
         y = forward!(net)
         if argmax(y) == (test_dataset[i].targets + 1)
             count += 1

@@ -119,7 +119,7 @@ forward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float64}, w::Matrix{Fl
         conv_layer.im2col = b
         reshape(w * b, (M - m) ÷ stride + 1, (N - n) ÷ stride + 1)
     end
-backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float64}, w::Matrix{Float64}, m::Int, n::Int, stride::Int, g) =
+backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float64}, w::Matrix{Float64}, m::Int, n::Int, stride::Int, g::Matrix{Float64}) =
     let
         M, N = size(x)
         mc = (M - m) ÷ stride + 1

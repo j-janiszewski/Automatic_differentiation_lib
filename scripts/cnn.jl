@@ -23,8 +23,8 @@ function sparse_categorical_crossentropy(y, actual_class)
     select(.-log.(y), actual_class)
 end
 
-function relu(x)
-    max.(x, Constant(0))
+function relu(x::GraphNode)
+    max.(x, Constant(0.0))
 end
 
 -(x::Vector, y::Matrix) = vec(x .- y)

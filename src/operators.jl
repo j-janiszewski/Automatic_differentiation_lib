@@ -5,8 +5,8 @@ using LinearAlgebra
 include(srcdir("graph_nodes.jl"))
 
 *(A::GraphNode, x::GraphNode) = MatrixOperator(mul!, A, x)
-forward(::MatrixOperator{typeof(mul!)}, A, x) = return A * x
-backward(::MatrixOperator{typeof(mul!)}, A, x, g) = tuple(g * x', A' * g)
+forward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}) = return A * x
+backward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}, g::Matrix{Float64}) = tuple(g * x', A' * g)
 
 Base.Broadcast.broadcasted(*, x::GraphNode, y::GraphNode) = MatrixOperator(*, x, y)
 forward(::MatrixOperator{typeof(*)}, x, y) = return x .* y
@@ -19,17 +19,17 @@ backward(node::MatrixOperator{typeof(*)}, x, y, g) =
     end
 
 
-Base.Broadcast.broadcasted(-, x::GraphNode, y::GraphNode) = MatrixOperator(-, x, y)
-forward(::MatrixOperator{typeof(-)}, x, y) = return x .- y
-backward(::MatrixOperator{typeof(-)}, x, y, g) = tuple(g, -g)
+#Base.Broadcast.broadcasted(-, x::GraphNode, y::GraphNode) = MatrixOperator(-, x, y)
+#forward(::MatrixOperator{typeof(-)}, x, y) = return x .- y
+#backward(::MatrixOperator{typeof(-)}, x, y, g) = tuple(g, -g)
 
 Base.Broadcast.broadcasted(-, x::GraphNode) = MatrixOperator(-, x)
-forward(::MatrixOperator{typeof(-)}, x,) = return .-x
-backward(::MatrixOperator{typeof(-)}, x, g) = tuple(-g)
+forward(::MatrixOperator{typeof(-)}, x::Vector{Float64}) = return .-x
+backward(::MatrixOperator{typeof(-)}, x::Vector{Float64}, g::AbstractArray{Float64}) = tuple(-g)
 
 Base.Broadcast.broadcasted(+, x::GraphNode, y::GraphNode) = MatrixOperator(+, x, y)
-forward(::MatrixOperator{typeof(+)}, x, y) = return x .+ y
-backward(::MatrixOperator{typeof(+)}, x, y, g) = tuple(g, g)
+forward(::MatrixOperator{typeof(+)}, x::Vector{Float64}, y::Vector{Float64}) = return x .+ y
+backward(::MatrixOperator{typeof(+)}, x::Vector{Float64}, y::Vector{Float64}, g::Matrix{Float64}) = tuple(g, g)
 
 
 sum(x::GraphNode) = MatrixOperator(sum, x)
@@ -53,8 +53,8 @@ backward(node::MatrixOperator{typeof(/)}, x, y::Real, g) =
 
 
 Base.Broadcast.broadcasted(max, x::GraphNode, y::GraphNode) = MatrixOperator(max, x, y)
-forward(::MatrixOperator{typeof(max)}, x, y) = return max.(x, y)
-backward(::MatrixOperator{typeof(max)}, x, y, g) =
+forward(::MatrixOperator{typeof(max)}, x::Matrix{Float64}, y::Float64) = return max.(x, y)
+backward(::MatrixOperator{typeof(max)}, x::Matrix{Float64}, y::Float64, g::Matrix{Float64}) =
     let
         Jx = isless.(y, x)
         Jy = isless.(x, y)
@@ -63,8 +63,8 @@ backward(::MatrixOperator{typeof(max)}, x, y, g) =
 
 
 Base.Broadcast.broadcasted(log, x::GraphNode) = MatrixOperator(log, x)
-forward(::MatrixOperator{typeof(log)}, x) = return log.(x)
-backward(::MatrixOperator{typeof(log)}, x, g) = tuple(((1 ./ x)' .* g)')
+forward(::MatrixOperator{typeof(log)}, x::Vector{Float64}) = return log.(x)
+backward(::MatrixOperator{typeof(log)}, x::Vector{Float64}, g::AbstractMatrix{Float64}) = tuple(((1 ./ x)' .* g)')
 
 
 select(x::GraphNode, index) = MatrixOperator(select, x, index)
@@ -77,8 +77,8 @@ backward(::MatrixOperator{typeof(select)}, x, index, g) =
     end
 
 softmax(x::GraphNode) = MatrixOperator(softmax, x)
-forward(::MatrixOperator{typeof(softmax)}, x) = return exp.(x) ./ sum(exp.(x))
-backward(node::MatrixOperator{typeof(softmax)}, x, g) =
+forward(::MatrixOperator{typeof(softmax)}, x::Vector{Float64}) = return exp.(x) ./ sum(exp.(x))
+backward(node::MatrixOperator{typeof(softmax)}, x::Vector{Float64}, g::AbstractMatrix{Float64}) =
     let
         y = node.output
         J = diagm(y) .- y * y'
@@ -86,8 +86,8 @@ backward(node::MatrixOperator{typeof(softmax)}, x, g) =
     end
 
 flatten(x::GraphNode) = MatrixOperator(flatten, x)
-forward(::MatrixOperator{typeof(flatten)}, x) = return vec(x)
-backward(::MatrixOperator{typeof(flatten)}, x, g) =
+forward(::MatrixOperator{typeof(flatten)}, x::Matrix{Float64}) = return vec(x)
+backward(::MatrixOperator{typeof(flatten)}, x::Matrix{Float64}, g::Matrix{Float64}) =
     let
         M, N = size(x)
         tuple(reshape(g, M, N))
@@ -142,7 +142,7 @@ backward(conv_layer::ConvOperator{typeof(conv)}, x::Matrix{Float64}, w::Matrix{F
 
 
 maxpool(x::GraphNode, n::Constant) = MatrixOperator(maxpool, x, n)
-forward(::MatrixOperator{typeof(maxpool)}, x, n) =
+forward(::MatrixOperator{typeof(maxpool)}, x::Matrix{Float64}, n::Int) =
     let
         M, N = size(x)
         M_out = 1 + (M - n) ÷ n
@@ -150,19 +150,20 @@ forward(::MatrixOperator{typeof(maxpool)}, x, n) =
         out = zeros(M_out, N_out)
         for i = 1:n:M
             for j = 1:n:N
-                out[(i+1)÷n, (j+1)÷n] = maximum(x[i:(i+n-1), j:(j+n-1)])
+                @views x_view = x[i:(i+n-1), j:(j+n-1)]
+                out[(i+1)÷n, (j+1)÷n] = maximum(x_view)
             end
         end
         out
     end
-backward(::MatrixOperator{typeof(maxpool)}, x, n, g) =
+backward(::MatrixOperator{typeof(maxpool)}, x::Matrix{Float64}, n::Int, g::Matrix{Float64}) =
     let
         M, N = size(x)
         M_out, N_out = size(g)
         dx = zeros(M, N)
         for i = 1:M_out
             for j = 1:N_out
-                pool = x[1+(i-1)*n:i*n, 1+(j-1)*n:j*n]
+                @views pool = x[1+(i-1)*n:i*n, 1+(j-1)*n:j*n]
                 mask = (pool .== maximum(pool))
                 dx[1+(i-1)*n:i*n, 1+(j-1)*n:j*n] = mask * g[i, j]
             end

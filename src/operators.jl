@@ -150,7 +150,7 @@ forward(::MatrixOperator{typeof(maxpool)}, x, n) =
         out = zeros(M_out, N_out)
         for i = 1:n:M
             for j = 1:n:N
-                out[(i+1)÷n, (j+1)÷n] = maximum(x[i:(i+n-1), j:(j+n-1)])
+                out[1+i÷n, 1+j÷n] = maximum(x[i:(i+n-1), j:(j+n-1)])
             end
         end
         out

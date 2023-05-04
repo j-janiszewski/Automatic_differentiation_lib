@@ -147,9 +147,11 @@ forward(::MatrixOperator{typeof(maxpool)}, x, n) =
         M, N = size(x)
         M_out = 1 + (M - n) ÷ n
         N_out = 1 + (N - n) ÷ n
+        M_reminder = mod(M - n, n)
+        N_reminder = mod(M - n, n)
         out = zeros(M_out, N_out)
-        for i = 1:n:M
-            for j = 1:n:N
+        for i = 1:n:M-M_reminder
+            for j = 1:n:N-N_reminder
                 out[1+i÷n, 1+j÷n] = maximum(x[i:(i+n-1), j:(j+n-1)])
             end
         end

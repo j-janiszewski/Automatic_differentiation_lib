@@ -8,28 +8,28 @@ struct Constant{T} <: GraphNode
 end
 
 mutable struct Variable <: GraphNode
-    output::Any
-    gradient::Any
+    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Int}   #TODO: sprawdzić czy nie można ograniczyć
+    gradient::Union{Nothing, Matrix{Float64}}
     name::String
     Variable(output; name="?") = new(output, nothing, name)
 end
 
 
 mutable struct MatrixOperator{F} <: Operator
-    inputs::Any
-    output::Any
-    gradient::Any
+    inputs::Union{Tuple{GraphNode}, Tuple{GraphNode, GraphNode}}    #TODO: sprawdzić czy nie można ograniczyć
+    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Float64}
+    gradient::Union{Nothing, Float64, Matrix{Float64}, Adjoint{Float64, Matrix{Float64}}, Adjoint{Float64, Vector{Float64}}}
     name::String
     MatrixOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name)
 end
 
 
 mutable struct ConvOperator{F} <: Operator
-    inputs::Any
-    output::Any
-    gradient::Any
+    inputs::Tuple{GraphNode, GraphNode, Constant{Int64}, Constant{Int64}, Constant{Int64}}
+    output::Union{Nothing, Matrix{Float64}}
+    gradient::Union{Nothing, Matrix{Float64}}
     name::String
-    im2col::Any
+    im2col::Union{Nothing, Matrix{Float64}}
     ConvOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name, nothing)
 end
 

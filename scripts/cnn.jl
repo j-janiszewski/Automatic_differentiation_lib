@@ -9,27 +9,27 @@ include(srcdir("operators.jl"))
 
 
 
-function dense(w, b, x, activation)
+function dense(w::Variable, b::Variable, x::Operator, activation::Function)
     return activation(w * x .+ b)
 end
-function dense(w, x, activation)
+function dense(w::Variable, x::Operator, activation::Function)
     return activation(w * x)
 end
-function dense(w, x)
+function dense(w::Variable, x::Operator)
     return w * x
 end
 
-function sparse_categorical_crossentropy(y, actual_class)
+function sparse_categorical_crossentropy(y::Operator, actual_class::Variable)
     select(.-log.(y), actual_class)
 end
 
-function relu(x)
-    max.(x, Constant(0))
+function relu(x::GraphNode)
+    max.(x, Constant(0.0))
 end
 
 -(x::Vector, y::Matrix) = vec(x .- y)
 
-function update_vars!(vars::Vector{Variable}, alpha)
+function update_vars!(vars::Vector{Variable}, alpha::Float64)
     for i in eachindex(vars)
         vars[i].output = vars[i].output - (vars[i].gradient * alpha)
     end

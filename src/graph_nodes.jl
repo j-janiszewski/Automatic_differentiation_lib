@@ -8,7 +8,7 @@ struct Constant{T} <: GraphNode
 end
 
 mutable struct Variable <: GraphNode
-    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Int}   #TODO: sprawdzić czy nie można ograniczyć
+    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Int}
     gradient::Union{Nothing, Matrix{Float64}}
     name::String
     Variable(output; name="?") = new(output, nothing, name)
@@ -16,7 +16,7 @@ end
 
 
 mutable struct MatrixOperator{F} <: Operator
-    inputs::Union{Tuple{GraphNode}, Tuple{GraphNode, GraphNode}}    #TODO: sprawdzić czy nie można ograniczyć
+    inputs::Union{Tuple{GraphNode}, Tuple{GraphNode, GraphNode}}
     output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Float64}
     gradient::Union{Nothing, Float64, Matrix{Float64}, Adjoint{Float64, Matrix{Float64}}, Adjoint{Float64, Vector{Float64}}}
     name::String

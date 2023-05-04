@@ -151,7 +151,7 @@ forward(::MatrixOperator{typeof(maxpool)}, x::Matrix{Float64}, n::Int) =
         for i = 1:n:M
             for j = 1:n:N
                 @views x_view = x[i:(i+n-1), j:(j+n-1)]
-                out[(i+1)÷n, (j+1)÷n] = maximum(x_view)
+                out[1+i÷n, 1+j÷n] = maximum(x_view)
             end
         end
         out

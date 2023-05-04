@@ -8,21 +8,17 @@ include(srcdir("graph_nodes.jl"))
 forward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}) = return A * x
 backward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}, g::Matrix{Float64}) = tuple(g * x', A' * g)
 
-#Base.Broadcast.broadcasted(*, x::GraphNode, y::GraphNode) = MatrixOperator(*, x, y)
-#forward(::MatrixOperator{typeof(*)}, x, y) = return x .* y
-#backward(node::MatrixOperator{typeof(*)}, x, y, g) =
-#    let
-#        𝟏 = ones(length(node.output))
-#        Jx = diagm(y .* 𝟏)
-#        Jy = diagm(x .* 𝟏)
-#        tuple(Jx' * g, Jy' * g)
-#    end
+Base.Broadcast.broadcasted(*, x::GraphNode, y::GraphNode) = MatrixOperator(*, x, y)
+forward(::MatrixOperator{typeof(*)}, x::Vector{Float64}, y::Vector{Float64}) = return x .* y
+backward(node::MatrixOperator{typeof(*)}, x::Vector{Float64}, y::Vector{Float64}, g::Vector{Float64}) =
+    let
+        𝟏 = ones(length(node.output))
+        Jx = diagm(y .* 𝟏)
+        Jy = diagm(x .* 𝟏)
+        tuple(Jx' * g, Jy' * g)
+    end
 
-
-#Base.Broadcast.broadcasted(-, x::GraphNode, y::GraphNode) = MatrixOperator(-, x, y)
-#forward(::MatrixOperator{typeof(-)}, x, y) = return x .- y
-#backward(::MatrixOperator{typeof(-)}, x, y, g) = tuple(g, -g)
-
+    
 Base.Broadcast.broadcasted(-, x::GraphNode) = MatrixOperator(-, x)
 forward(::MatrixOperator{typeof(-)}, x::Vector{Float64}) = return .-x
 backward(::MatrixOperator{typeof(-)}, x::Vector{Float64}, g::AbstractArray{Float64}) = tuple(-g)

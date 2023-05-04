@@ -64,8 +64,8 @@ backward(::MatrixOperator{typeof(log)}, x::Vector{Float64}, g::AbstractMatrix{Fl
 
 
 select(x::GraphNode, index) = MatrixOperator(select, x, index)
-forward(::MatrixOperator{typeof(select)}, x, index) = return x[index]
-backward(::MatrixOperator{typeof(select)}, x, index, g) =
+forward(::MatrixOperator{typeof(select)}, x::Vector{Float64}, index::Int) = return x[index]
+backward(::MatrixOperator{typeof(select)}, x::Vector{Float64}, index::Int, g::Float64) =
     let
         result = zeros(size(x))
         result[index] = g

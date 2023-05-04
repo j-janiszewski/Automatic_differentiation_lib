@@ -8,15 +8,15 @@ include(srcdir("graph_nodes.jl"))
 forward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}) = return A * x
 backward(::MatrixOperator{typeof(mul!)}, A::Matrix{Float64}, x::Vector{Float64}, g::Matrix{Float64}) = tuple(g * x', A' * g)
 
-Base.Broadcast.broadcasted(*, x::GraphNode, y::GraphNode) = MatrixOperator(*, x, y)
-forward(::MatrixOperator{typeof(*)}, x, y) = return x .* y
-backward(node::MatrixOperator{typeof(*)}, x, y, g) =
-    let
-        𝟏 = ones(length(node.output))
-        Jx = diagm(y .* 𝟏)
-        Jy = diagm(x .* 𝟏)
-        tuple(Jx' * g, Jy' * g)
-    end
+#Base.Broadcast.broadcasted(*, x::GraphNode, y::GraphNode) = MatrixOperator(*, x, y)
+#forward(::MatrixOperator{typeof(*)}, x, y) = return x .* y
+#backward(node::MatrixOperator{typeof(*)}, x, y, g) =
+#    let
+#        𝟏 = ones(length(node.output))
+#        Jx = diagm(y .* 𝟏)
+#        Jy = diagm(x .* 𝟏)
+#        tuple(Jx' * g, Jy' * g)
+#    end
 
 
 #Base.Broadcast.broadcasted(-, x::GraphNode, y::GraphNode) = MatrixOperator(-, x, y)
@@ -98,7 +98,7 @@ function im2col(x::Matrix{Float64}, m::Int, n::Int, stride::Int)
     M, N = size(x)
     mc = (M - m) ÷ stride + 1
     nc = (N - n) ÷ stride + 1
-    B = Array{Float32}(undef, m * n, mc * nc)
+    B = Array{Float64}(undef, m * n, mc * nc)
     for j = 1:nc
         for i = 1:mc
             @views block = x[((i-1)*stride+1):((i-1)*stride+1+m-1), (j-1)*stride+1:(j-1)*stride+1+n-1]

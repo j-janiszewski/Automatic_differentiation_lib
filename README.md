@@ -5,7 +5,7 @@ Project made for the course:  "Algorithms in data engineering" of the Warsaw Uni
 An example of how the library can be used for creating Convolutional neural networks can be found in *scripts/cnn.jl*.
 
 
-It is authored by Jan Janiszewski.
+It is authored by Jan Janiszewski and Maciej Zalewski.
 
 To (locally) reproduce this project, do the following:
 

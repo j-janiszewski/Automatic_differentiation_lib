@@ -8,28 +8,28 @@ struct Constant{T} <: GraphNode
 end
 
 mutable struct Variable <: GraphNode
-    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Int}   #TODO: sprawdzić czy nie można ograniczyć
-    gradient::Union{Nothing, Matrix{Float64}}
+    output::Union{Nothing,Matrix{Float32},Vector{Float32},Int}   #TODO: sprawdzić czy nie można ograniczyć
+    gradient::Union{Nothing,Matrix{Float32}}
     name::String
     Variable(output; name="?") = new(output, nothing, name)
 end
 
 
 mutable struct MatrixOperator{F} <: Operator
-    inputs::Union{Tuple{GraphNode}, Tuple{GraphNode, GraphNode}}    #TODO: sprawdzić czy nie można ograniczyć
-    output::Union{Nothing, Matrix{Float64}, Vector{Float64}, Float64}
-    gradient::Union{Nothing, Float64, Matrix{Float64}, Adjoint{Float64, Matrix{Float64}}, Adjoint{Float64, Vector{Float64}}}
+    inputs::Union{Tuple{GraphNode},Tuple{GraphNode,GraphNode}}    #TODO: sprawdzić czy nie można ograniczyć
+    output::Union{Nothing,Matrix{Float32},Vector{Float32},Float32}
+    gradient::Union{Nothing,Float32,Matrix{Float32},Adjoint{Float32,Matrix{Float32}},Adjoint{Float32,Vector{Float32}}}
     name::String
     MatrixOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name)
 end
 
 
 mutable struct ConvOperator{F} <: Operator
-    inputs::Tuple{GraphNode, GraphNode, Constant{Int64}, Constant{Int64}, Constant{Int64}}
-    output::Union{Nothing, Matrix{Float64}}
-    gradient::Union{Nothing, Matrix{Float64}}
+    inputs::Tuple{GraphNode,GraphNode,Constant{Int64},Constant{Int64},Constant{Int64}}
+    output::Union{Nothing,Matrix{Float32}}
+    gradient::Union{Nothing,Matrix{Float32}}
     name::String
-    im2col::Union{Nothing, Matrix{Float64}}
+    im2col::Union{Nothing,Matrix{Float32}}
     ConvOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name, nothing)
 end
 
@@ -100,7 +100,7 @@ update!(node::GraphNode, gradient) =
         node.gradient .+= gradient
     end
 
-function backward!(order::Vector; seed=1.0)
+function backward!(order::Vector; seed=Float32(1.0))
     result = last(order)
     result.gradient = seed
     for node in reverse(order)

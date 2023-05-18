@@ -93,8 +93,9 @@ end
 
 
 
-LEARNING_RATE = Float32(0.001)
-EPOCHS = 3
+const LEARNING_RATE = Float32(0.001)
+const EPOCHS = 3
+
 
 @time train_and_test_mnist_cnn(LEARNING_RATE, EPOCHS)
 

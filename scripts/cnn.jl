@@ -35,7 +35,7 @@ function update_vars!(vars::Vector{Variable}, alpha)
     end
 end
 
-function train_and_test_mnist_cnn(learning_rate::Float64, epochs::Int)
+function train_and_test_mnist_cnn(learning_rate::Float32, epochs::Int)
     NUM_OF_CLASSES = 10
     b = Variable(rand(Float64, NUM_OF_CLASSES), name="dense_layer_bias")
     w = Variable(rand(Float64, (NUM_OF_CLASSES, 13 * 13)) ./ 10, name="dense_layer_weights")
@@ -92,8 +92,8 @@ end
 
 
 
-LEARNING_RATE = 0.001
-EPOCHS = 3
+const LEARNING_RATE = Float32(0.001)
+const EPOCHS = 3
 
 @time train_and_test_mnist_cnn(LEARNING_RATE, EPOCHS)
 

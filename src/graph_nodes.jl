@@ -11,7 +11,8 @@ mutable struct Variable <: GraphNode
     output::Union{Nothing, Matrix{Float32}, Vector{Float32}, Int}
     gradient::Union{Nothing,Matrix{Float32}}
     name::String
-    Variable(output; name="?") = new(output, nothing, name)
+    rmsprop::Union{Nothing,Matrix{Float32}}
+    Variable(output; name="?") = new(output, nothing, name, nothing)
 end
 
 

@@ -29,13 +29,19 @@ end
 
 -(x::Vector, y::Matrix) = vec(x .- y)
 
-function update_vars!(vars::Vector{Variable}, alpha::Float32)
+# With RMSprop
+function update_vars!(vars::Vector{Variable}, alpha::Float32, gamma::Float32, epsilon::Float32, epochs::Int)
     for i in eachindex(vars)
-        vars[i].output = vars[i].output - (vars[i].gradient * alpha)
+        #vars[i].output = vars[i].output - (vars[i].gradient * alpha)
+        if isnothing(vars[i].rmsprop)
+            vars[i].rmsprop = zeros(Float32, size(vars[i].gradient))
+        end
+        vars[i].rmsprop = gamma * vars[i].rmsprop .+ (1 - gamma) * vars[i].gradient .* vars[i].gradient
+        vars[i].output = vars[i].output - vars[i].gradient .* (alpha ./ sqrt.(vars[i].rmsprop .+ epsilon))
     end
 end
 
-function train_and_test_mnist_cnn(learning_rate::Float32, epochs::Int)
+function train_and_test_mnist_cnn(learning_rate::Float32, gamma::Float32, epsilon::Float32, epochs::Int)
     NUM_OF_CLASSES = 10
     b = Variable(rand(Float32, NUM_OF_CLASSES), name="dense_layer_bias")
     w = Variable(rand(Float32, (NUM_OF_CLASSES, 13 * 13)) ./ 10, name="dense_layer_weights")
@@ -67,9 +73,12 @@ function train_and_test_mnist_cnn(learning_rate::Float32, epochs::Int)
             loss_value = forward!(net)
             losses[i] = loss_value
             backward!(net)
-            update_vars!(learnables, learning_rate)
+            update_vars!(learnables, learning_rate, gamma, epsilon, j)
         end
         @printf("Avarage loss during epoch #%d run : %f \n", j, mean(losses))
+        for i in eachindex(learnables)
+            learnables[i].rmsprop = nothing
+        end
     end
 
     test_dataset = MNIST(:test)
@@ -93,8 +102,10 @@ end
 
 
 
-LEARNING_RATE = Float32(0.001)
-EPOCHS = 3
+const LEARNING_RATE = Float32(0.001)
+const GAMMA = Float32(0.9)
+const EPSILON = Float32(1e-6)
+const EPOCHS = 3
 
-@time train_and_test_mnist_cnn(LEARNING_RATE, EPOCHS)
+@time train_and_test_mnist_cnn(LEARNING_RATE, GAMMA, EPSILON, EPOCHS)
 

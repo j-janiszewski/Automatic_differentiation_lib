@@ -8,28 +8,28 @@ struct Constant{T} <: GraphNode
 end
 
 mutable struct Variable <: GraphNode
-    output::Any
-    gradient::Any
+    output::Union{Nothing, Matrix{Float32}, Vector{Float32}, Int}
+    gradient::Union{Nothing,Matrix{Float32}}
     name::String
     Variable(output; name="?") = new(output, nothing, name)
 end
 
 
 mutable struct MatrixOperator{F} <: Operator
-    inputs::Any
-    output::Any
-    gradient::Any
+    inputs::Union{Tuple{GraphNode}, Tuple{GraphNode, GraphNode}}
+    output::Union{Nothing, Matrix{Float32}, Vector{Float32}, Float32}
+    gradient::Union{Nothing, Float32, Matrix{Float32}, Adjoint{Float32, Matrix{Float32}}, Adjoint{Float32, Vector{Float32}}}
     name::String
     MatrixOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name)
 end
 
 
 mutable struct ConvOperator{F} <: Operator
-    inputs::Any
-    output::Any
-    gradient::Any
+    inputs::Tuple{GraphNode,GraphNode,Constant{Int64},Constant{Int64},Constant{Int64}}
+    output::Union{Nothing,Matrix{Float32}}
+    gradient::Union{Nothing,Matrix{Float32}}
     name::String
-    im2col::Any
+    im2col::Union{Nothing,Matrix{Float32}}
     ConvOperator(fun, inputs...; name="?") = new{typeof(fun)}(inputs, nothing, nothing, name, nothing)
 end
 
@@ -100,7 +100,7 @@ update!(node::GraphNode, gradient) =
         node.gradient .+= gradient
     end
 
-function backward!(order::Vector; seed=1.0)
+function backward!(order::Vector; seed=Float32(1.0))
     result = last(order)
     result.gradient = seed
     for node in reverse(order)

@@ -1,11 +1,13 @@
 # Automatic differentiation in reverse mode - Julia library
 
-Project made for the course:  "Algorithms in data engineering" of the Warsaw University of Technology
+Project made for the course:  "Algorithms in data engineering" of the Warsaw University of Technology. It is authored by Jan Janiszewski and Maciej Zalewski.
 
-An example of how the library can be used for creating Convolutional neural networks can be found in *scripts/cnn.jl*.
+An example of how the library can be used for creating Convolutional Neural Networks can be found in *scripts/cnn.jl*.
+
+Convolutional Neural Networks created using this library was compared with the one created on the basis of Tensorflow in terms of speed and accuracy. Detailed description of the findings can be found in *report.pdf*.
 
 
-It is authored by Jan Janiszewski and Maciej Zalewski.
+## How to reproduce locally 
 
 To (locally) reproduce this project, do the following:
 
